@@ -22,10 +22,16 @@ class BookmarkManager < Sinatra::Base
   end
 
   post '/links' do
+    split_tag = []
+    split_tag = params[:tag].split
     link = Link.new(url: params[:url],     # 1. Create a link
                   title: params[:title])
-    tag  = Tag.create(name: params[:tag]) # 2. Create a tag for the link
-    link.tags << tag                       # 3. Adding the tag to the link's DataMapper collection.
+    tag  = Tag.create(name: split_tag[0])
+    tag2  = Tag.create(name: split_tag[1]) # 2. Create a tag for the link
+
+    link.tags << tag          # 3. Adding the tag to the link's DataMapper collection.
+    # link.save                              # 4. Saving the link.
+    link.tags << tag2          # 3. Adding the tag to the link's DataMapper collection.
     link.save                              # 4. Saving the link.
     redirect to('/links')
   end

@@ -1,12 +1,17 @@
 require 'sinatra/base'
 require_relative "../data_mapper_setup"
 require_relative "./models/link"
+require_relative "./models/user"
+require 'sinatra/session'
 
 class BookmarkManager < Sinatra::Base
   configure :development do
     set :bind, '0.0.0.0'
     set :port, 3000
   end
+
+  enable :sessions
+  set :session_secret, 'super secret'
 
   get '/' do
     erb :start
@@ -21,18 +26,13 @@ class BookmarkManager < Sinatra::Base
     erb :create_links
   end
 
-  post '/links' do
-    split_tag = []
-    split_tag = params[:tag].split
-    link = Link.new(url: params[:url],     # 1. Create a link
-                  title: params[:title])
-    tag  = Tag.create(name: split_tag[0])
-    tag2  = Tag.create(name: split_tag[1]) # 2. Create a tag for the link
 
-    link.tags << tag          # 3. Adding the tag to the link's DataMapper collection.
-    # link.save                              # 4. Saving the link.
-    link.tags << tag2          # 3. Adding the tag to the link's DataMapper collection.
-    link.save                              # 4. Saving the link.
+  post '/links' do
+    link = Link.new(url: params[:url], title: params[:title])
+    (params[:tags].split).each do |tag| tag = Tag.first_or_create(name: tag)
+    link.tags << tag
+    end
+    link.save
     redirect to('/links')
   end
 
@@ -40,6 +40,24 @@ class BookmarkManager < Sinatra::Base
     tag = Tag.first(name: params[:name])
     @links = tag ? tag.links : []
     erb :index
+  end
+
+  get '/users/new' do
+    erb :'users/new'
+  end
+
+  post '/users' do
+  user = User.create(email: params[:email],
+                     password: params[:password],
+                     password_confirmation: params[:password_confirmation])
+  session[:user_id] = user.id
+  redirect to('/links')
+end
+
+  helpers do
+    def current_user
+      User.get(session[:user_id])
+    end
   end
 
   # start the server if ruby file executed directly

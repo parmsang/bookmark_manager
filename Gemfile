@@ -5,10 +5,12 @@ ruby "2.2.2"
 gem "sinatra"
 gem 'data_mapper'
 gem 'dm-postgres-adapter'
+gem 'rake'
+gem 'sinatra-session'
 
 group :test do
   gem 'capybara'
   gem 'rspec'
   gem 'rspec-sinatra'
-  gem 'database_cleaner'  
+  gem 'database_cleaner'
 end

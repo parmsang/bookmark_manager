@@ -3,6 +3,7 @@ require_relative "../data_mapper_setup"
 require_relative "./models/link"
 require_relative "./models/user"
 require 'sinatra/session'
+require 'sinatra/flash'
 
 class BookmarkManager < Sinatra::Base
   configure :development do
@@ -11,6 +12,8 @@ class BookmarkManager < Sinatra::Base
   end
 
   enable :sessions
+  register Sinatra::Flash
+
   set :session_secret, 'super secret'
 
   get '/' do
@@ -25,7 +28,6 @@ class BookmarkManager < Sinatra::Base
   get '/links/new' do
     erb :create_links
   end
-
 
   post '/links' do
     link = Link.new(url: params[:url], title: params[:title])
@@ -43,16 +45,25 @@ class BookmarkManager < Sinatra::Base
   end
 
   get '/users/new' do
+    @user = User.new
     erb :'users/new'
   end
 
   post '/users' do
-  user = User.create(email: params[:email],
-                     password: params[:password],
-                     password_confirmation: params[:password_confirmation])
-  session[:user_id] = user.id
-  redirect to('/links')
-end
+    @user = User.new(email: params[:email],
+                    password: params[:password],
+                    password_confirmation: params[:password_confirmation])
+    if @user.save
+      session[:user_id] = @user.id
+      redirect to('/')
+    elsif @user.email == ""
+      flash.now[:notice] = "Email has not been entered"
+      erb :'users/new'
+    else @user.password == ""
+      flash.now[:notice] = "Password and confirmation password do not match"
+      erb :'users/new'
+    end
+  end
 
   helpers do
     def current_user

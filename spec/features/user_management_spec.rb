@@ -8,38 +8,39 @@ feature 'User sign up' do
   # However, we are currently driving everything through
   # feature tests and we want to keep this example simple.
 
-
   scenario 'I can sign up as a new user' do
-    expect { sign_up }.to change(User, :count).by(1)
-    expect(page).to have_content('Welcome, alice@example.com')
-    expect(User.first.email).to eq('alice@example.com')
+    user = build :user
+    expect { sign_up(user) }.to change(User, :count).by(1)
+    expect(page).to have_content("Welcome, #{user.email}")
+    expect(User.first.email).to eq("#{user.email}")
   end
 
   scenario 'requires a matching confirmation password' do
+    user = build(:user, password_confirmation: "wrong")
     # again it's questionable whether we should be testing the model at this
     # level.  We are mixing integration tests with feature tests.
     # However, it's convenient for our purposes.
-    expect { sign_up(password_confirmation: 'wrong') }.not_to change(User, :count)
+    expect { sign_up(user) }.not_to change(User, :count)
   end
 
-  def sign_up(email: 'alice@example.com',
-              password: '12345678',
-              password_confirmation: '12345678')
+  def sign_up(user)
     visit '/users/new'
-    fill_in :email, with: email
-    fill_in :password, with: password
-    fill_in :password_confirmation, with: password_confirmation
+    fill_in :email, with: user.email
+    fill_in :password, with: user.password
+    fill_in :password_confirmation, with: user.password_confirmation
     click_button 'Sign up'
   end
 
   scenario 'with a password that does not match' do
-    expect { sign_up(password_confirmation: 'wrong') }.not_to change(User, :count)
+    user = build(:user, password_confirmation: "wrong")
+    expect { sign_up(user) }.not_to change(User, :count)
     expect(current_path).to eq('/users') # current_path is a helper provided by Capybara
     expect(page).to have_content 'Password and confirmation password do not match'
   end
 
   scenario 'Can not sign up without Email' do
-    expect { sign_up(email: "") }.not_to change(User, :count)
+    user = build(:user, email: "")
+    expect { sign_up(user) }.not_to change(User, :count)
     expect(current_path).to eq('/users') # current_path is a helper provided by Capybara
     expect(page).to have_content 'Email has not been entered'
   end

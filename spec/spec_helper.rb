@@ -6,6 +6,7 @@ require 'capybara'
 require 'capybara/rspec'
 require 'rspec'
 require 'database_cleaner'
+require 'factory_girl'
 
 Capybara.app = BookmarkManager
 
@@ -66,6 +67,14 @@ RSpec.configure do |config|
     # a real object. This is generally recommended, and will default to
     # `true` in RSpec 4.
     mocks.verify_partial_doubles = true
+  end
+
+  # RSpec
+  # spec/support/factory_girl.rb
+  RSpec.configure do |config|
+    config.include FactoryGirl::Syntax::Methods
+    config.before(:all) do FactoryGirl.reload
+    end
   end
 
 # The settings below are suggested to provide a good initial experience

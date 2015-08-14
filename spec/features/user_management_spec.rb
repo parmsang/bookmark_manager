@@ -35,14 +35,21 @@ feature 'User sign up' do
     user = build(:user, password_confirmation: "wrong")
     expect { sign_up(user) }.not_to change(User, :count)
     expect(current_path).to eq('/users') # current_path is a helper provided by Capybara
-    expect(page).to have_content 'Password and confirmation password do not match'
+    expect(page).to have_content 'Password does not match the confirmation'
   end
 
   scenario 'Can not sign up without Email' do
     user = build(:user, email: "")
     expect { sign_up(user) }.not_to change(User, :count)
     expect(current_path).to eq('/users') # current_path is a helper provided by Capybara
-    expect(page).to have_content 'Email has not been entered'
+    expect(page).to have_content 'Email must not be blank'
+  end
+
+  scenario 'I cannot sign up with an existing email' do
+    user = build :user #or use user = create :user - this avoids line 50!
+    sign_up(user)
+    expect { sign_up(user) }.to change(User, :count).by(0)
+    expect(page).to have_content('Email is already taken')
   end
 
 end
